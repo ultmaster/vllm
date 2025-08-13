@@ -398,12 +398,6 @@ class OpenAIServingCompletion(OpenAIServing):
                         delta_token_ids = output.token_ids
                         out_logprobs = output.logprobs
 
-                        # has_echoed[i] is reused here to indicate whether
-                        # we have already returned the prompt token IDs.
-                        if not has_echoed[i]:
-                            prompt_token_ids_to_return = prompt_token_ids
-                            has_echoed[i] = True
-
                         if (not delta_text and not delta_token_ids
                                 and not previous_num_tokens[i]):
                             # Chunked prefill case, don't return empty chunks
@@ -441,7 +435,7 @@ class OpenAIServingCompletion(OpenAIServing):
                                 finish_reason=finish_reason,
                                 stop_reason=stop_reason,
                                 prompt_token_ids=prompt_token_ids_to_return,
-                                token_ids=(list(delta_token_ids) if
+                                token_ids=(list(output.token_ids) if
                                            request.return_token_ids else None),
                             )
                         ],
@@ -564,8 +558,9 @@ class OpenAIServingCompletion(OpenAIServing):
                     stop_reason=output.stop_reason,
                     prompt_logprobs=final_res.prompt_logprobs,
                     prompt_token_ids=(prompt_token_ids
-                                      if request.return_token_ids else None),
-                    token_ids=(list(token_ids)
+                                      if request.return_token_ids
+                                      and request.echo else None),
+                    token_ids=(list(output.token_ids)
                                if request.return_token_ids else None),
                 )
                 choices.append(choice_data)

@@ -40,7 +40,10 @@ async def test_basic_completion_with_emoji(server):
             max_tokens=10,
             temperature=0,
             logprobs=1,
-            extra_body={"return_token_ids": True},
+            extra_body={
+                "return_token_ids": True,
+                "echo": True
+            },
         )
 
         # Check the raw response to see the structure
@@ -133,7 +136,10 @@ async def test_chat_completion_with_tool_use(server):
             max_tokens=100,
             temperature=0,
             logprobs=True,
-            extra_body={"return_token_ids": True},
+            extra_body={
+                "return_token_ids": True,
+                "echo": True
+            },
         )
 
         # Verify token_ids field is present in choices
@@ -205,6 +211,7 @@ async def test_comparison_with_prompt_logprobs_and_logprobs(server):
             logprobs=1,
             extra_body={
                 "return_token_ids": True,
+                "echo": True,
                 "return_tokens_as_token_ids": True,
                 "prompt_logprobs": 1
             },
@@ -256,6 +263,7 @@ async def test_comparison_with_prompt_logprobs_and_logprobs(server):
             logprobs=1,
             extra_body={
                 "return_token_ids": True,
+                "echo": True,
                 "return_tokens_as_token_ids": True
             },
         )
@@ -302,7 +310,10 @@ async def test_chat_completion_with_emoji_and_token_ids(server):
             max_tokens=50,
             temperature=0,
             logprobs=True,
-            extra_body={"return_token_ids": True},
+            extra_body={
+                "return_token_ids": True,
+                "echo": True
+            },
         )
 
         # Verify token_ids are present
@@ -335,7 +346,10 @@ async def test_chat_completion_with_emoji_and_token_ids(server):
             max_tokens=50,
             temperature=0,
             stream=True,
-            extra_body={"return_token_ids": True},
+            extra_body={
+                "return_token_ids": True,
+                "echo": True
+            },
         )
 
         collected_content = ""
@@ -371,3 +385,45 @@ async def test_chat_completion_with_emoji_and_token_ids(server):
         # Verify token_ids decode properly
         decoded_response = tokenizer.decode(collected_token_ids)
         assert decoded_response == collected_content + "<|im_end|>"
+
+
+@pytest.mark.asyncio
+async def test_completion_and_chat_completion_with_no_echo(server):
+    """Test completion and chat completion with echo=False."""
+    async with server.get_async_client() as client:
+        # Test completion with echo=False
+        completion = await client.completions.create(
+            model=MODEL_NAME,
+            prompt="What is the capital of France?",
+            max_tokens=10,
+            temperature=0,
+            echo=False,
+            extra_body={"return_token_ids": True},
+        )
+
+        # Verify no prompt_token_ids in response
+        assert "prompt_token_ids" not in completion.model_dump()["choices"][0]
+        assert completion.choices[0].token_ids is not None
+
+        # Test chat completion with echo=False
+        chat_response = await client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                },
+                {
+                    "role": "user",
+                    "content": "What is the capital of France?"
+                },
+            ],
+            max_tokens=10,
+            temperature=0,
+            echo=False,
+            extra_body={"return_token_ids": True},
+        )
+
+        # Verify no prompt_token_ids in chat response
+        assert "prompt_token_ids" not in chat_response.model_dump()
+        assert chat_response.choices[0].token_ids is not None

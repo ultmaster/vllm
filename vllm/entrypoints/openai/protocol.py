@@ -572,7 +572,8 @@ class ChatCompletionRequest(OpenAIBaseModel):
         default=False,
         description=(
             "If specified, the result will include token IDs alongside the "
-            "generated text. In streaming mode, prompt_token_ids is included "
+            "generated text. When used with echo=True, prompt token IDs are "
+            "also returned. In streaming mode, prompt_token_ids is included "
             "only in the first chunk, and token_ids contains the delta tokens "
             "for each chunk. This is useful for debugging or when you "
             "need to map generated text back to input tokens."))
@@ -1066,7 +1067,8 @@ class CompletionRequest(OpenAIBaseModel):
         default=False,
         description=(
             "If specified, the result will include token IDs alongside the "
-            "generated text. In streaming mode, prompt_token_ids is included "
+            "generated text. When used with echo=True, prompt token IDs are "
+            "also returned. In streaming mode, prompt_token_ids is included "
             "only in the first chunk, and token_ids contains the delta tokens "
             "for each chunk. This is useful for debugging or when you "
             "need to map generated text back to input tokens."))

@@ -574,10 +574,7 @@ class OpenAIServingChat(OpenAIServing):
                             object=chunk_object_type,
                             created=created_time,
                             choices=[choice_data],
-                            model=model_name,
-                            prompt_token_ids=(res.prompt_token_ids
-                                              if request.return_token_ids else
-                                              None))
+                            model=model_name)
 
                         # if continuous usage stats are requested, add it
                         if include_continuous_usage:
@@ -611,7 +608,10 @@ class OpenAIServingChat(OpenAIServing):
                                     object=chunk_object_type,
                                     created=created_time,
                                     choices=[choice_data],
-                                    model=model_name)
+                                    model=model_name,
+                                    prompt_token_ids=(res.prompt_token_ids if
+                                                      request.return_token_ids
+                                                      else None))
                                 if include_continuous_usage:
                                     chunk.usage = UsageInfo(
                                         prompt_tokens=num_prompt_tokens,
@@ -1313,7 +1313,8 @@ class OpenAIServingChat(OpenAIServing):
             usage=usage,
             prompt_logprobs=clamp_prompt_logprobs(final_res.prompt_logprobs),
             prompt_token_ids=(final_res.prompt_token_ids
-                              if request.return_token_ids else None),
+                              if request.return_token_ids and request.echo else
+                              None),
             kv_transfer_params=final_res.kv_transfer_params,
         )
 
